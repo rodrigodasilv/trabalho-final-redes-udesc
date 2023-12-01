@@ -1,7 +1,7 @@
 import socket
 import select
 
-ipServer = '192.168.0.105'
+ipServer = '192.168.0.105' # IP do servidor
 portaServer = 9000
 
 socketClient = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -11,9 +11,9 @@ socketClient.send('html'.encode('utf-8')) #Solicita o arquivo html
 response = b''
 html = open('index.html', 'wb')
 response = socketClient.recv(1024)
-while response:
+while response: #Enquanto tiver pacotes, escrever no arquivo
     html.write(response)
-    ready, _, _ = select.select([socketClient], [], [], 1)  # Use 1 segundo de timeout
+    ready, _, _ = select.select([socketClient], [], [], 1)
     if not ready:
         break
     response = socketClient.recv(1024)
@@ -24,12 +24,10 @@ response = b''
 ready = b''
 socketClient.send('png'.encode('utf-8')) #Solicita o arquivo png
 png = open('servidor.png', 'wb')
-ready, _, _ = select.select([socketClient], [], [], 1)  # Use 1 segundo de timeout
-if ready:
-    response = socketClient.recv(1024)
-while response:
+response = socketClient.recv(1024)
+while response: # Enquanto tiver pacotes, escrever no arquivo
     png.write(response)
-    ready, _, _ = select.select([socketClient], [], [], 1)  # Use 1 segundo de timeout
+    ready, _, _ = select.select([socketClient], [], [], 1)  
     if not ready:
         break
     response = socketClient.recv(1024)

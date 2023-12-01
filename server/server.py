@@ -4,15 +4,18 @@ import select
 
 
 def gerenciadorConexao(socketClient, ipClient, portaClient):
+    # Printa na tela e salva em arquivo as conexoes
     print(f'IP cliente: {ipClient} Porta cliente:{portaClient}\n')
     logs = open('logs.txt', 'a')
     logs.write(f'IP cliente: {ipClient} Porta cliente:{portaClient}\n')
     logs.close()
-    ready, _, _ = select.select([socketClient], [], [], 1)  # Use 1 segundo de timeout
+    #Espera ate o cliente requisitar algo
+    ready, _, _ = select.select([socketClient], [], [], 1)
     if ready:
         request = socketClient.recv(1024).decode('utf-8')
     if request == 'html':  # Cliente solicitou html
         f = open('index.html', 'w')
+        #Monta página HTML
         f.write(f"""<!DOCTYPE html>
                 <html lang='pt-br'>
                 <head>
@@ -28,16 +31,20 @@ def gerenciadorConexao(socketClient, ipClient, portaClient):
                 </html>""")
         f.close()
         f = open('index.html', 'rb')
+        #Envia página HTML
         socketClient.sendall(f.read())
         f.close()
-    ready, _, _ = select.select([socketClient], [], [], 5)  # Use 1 segundo de timeout
+    #Espera o cliente requisitar a imagem
+    ready, _, _ = select.select([socketClient], [], [], 2)  
     if ready:
         request = socketClient.recv(1024).decode('utf-8')
     if request == 'png':  # Cliente solicitou png
         png = open('servidor.png', 'rb')
+        #Envia imagem
         socketClient.sendall(png.read())
         png.close()
-    ready, _, _ = select.select([socketClient], [], [], 1)  # Use 1 segundo de timeout
+    #Espera o cliente desconectar
+    ready, _, _ = select.select([socketClient], [], [], 1)
     if ready:
         request = socketClient.recv(1024).decode('utf-8')
     if request == 'disconnect':  # Cliente solicitou desconexão
@@ -52,5 +59,6 @@ sock.bind((ipServer, portaServer))  # Faz o bind para o socket
 sock.listen()  # Espera o client.
 while True:
     conexao, (ipClient, portaClient) = sock.accept()  # Conecta com o cliente.
+    #Realiza tratamento do cliente em outra area de memoria
     threadGerenciadorConexao = threading.Thread(target=gerenciadorConexao, args=(conexao, ipClient, portaClient))
     threadGerenciadorConexao.start()
